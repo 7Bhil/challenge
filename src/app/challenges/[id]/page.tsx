@@ -8,17 +8,15 @@ import { isAdmin, isJuror } from '@/lib/roles'
 import CountdownTimer from '@/components/CountdownTimer'
 
 interface PageProps {
-  params: { id: string }; // ✅ Correspond au dossier [id]
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
 export default async function ChallengeDetail({ params }: PageProps) {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect('/login');
+  const session = await getServerSession(authOptions)
+  if (!session) redirect('/login')
 
-  console.log("ID reçu dans params :", params.id); // ✅ Affiche l'ID
-  const id = parseInt(params.id); // ✅ Parse l'ID
-
+  const id = parseInt(params.id)
   if (isNaN(id)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -29,7 +27,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   // Récupère le challenge
@@ -38,13 +36,12 @@ export default async function ChallengeDetail({ params }: PageProps) {
     include: {
       creator: { select: { name: true } },
       submissions: {
-        include: { user: { select: { name: true } } }
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' }
       },
       _count: { select: { submissions: true } }
     }
-  });
-
-
+  })
 
   if (!challenge) {
     return (
@@ -62,7 +59,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
   // Vérifier si l'utilisateur a déjà soumis pour ce challenge
   const userSubmission = session.user?.id
     ? await prisma.submission.findFirst({
-        where: { 
+        where: {
           userId: parseInt(session.user.id),
           challengeId: challenge.id
         }
@@ -78,8 +75,8 @@ export default async function ChallengeDetail({ params }: PageProps) {
       <div className="container mx-auto px-4 py-8">
         {/* En-tête avec navigation */}
         <div className="mb-6">
-          <Link 
-            href="/dashboard" 
+          <Link
+            href="/dashboard"
             className="text-indigo-600 hover:text-indigo-800 inline-flex items-center mb-4"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,12 +84,12 @@ export default async function ChallengeDetail({ params }: PageProps) {
             </svg>
             Retour au tableau de bord
           </Link>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                challenge.type === 'Challenge' 
-                  ? 'bg-blue-100 text-blue-800' 
+                challenge.type === 'Challenge'
+                  ? 'bg-blue-100 text-blue-800'
                   : 'bg-purple-100 text-purple-800'
               }`}>
                 {challenge.type}
@@ -104,7 +101,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
                 Créé par {challenge.creator.name}
               </p>
             </div>
-            
+
             {isAdmin(session.user?.role ?? '') && (
               <Link
                 href={`/admin/challenges/edit/${challenge.id}`}
@@ -120,9 +117,9 @@ export default async function ChallengeDetail({ params }: PageProps) {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           {!isChallengeStarted ? (
             <div className="text-center">
-              <CountdownTimer 
-                targetDate={new Date(challenge.startDate)} 
-                label="Début dans" 
+              <CountdownTimer
+                targetDate={new Date(challenge.startDate)}
+                label="Début dans"
               />
               <p className="text-gray-600 mt-2">
                 Le challenge commencera le {new Date(challenge.startDate).toLocaleDateString('fr-FR')}
@@ -137,9 +134,9 @@ export default async function ChallengeDetail({ params }: PageProps) {
             </div>
           ) : (
             <div className="text-center">
-              <CountdownTimer 
-                targetDate={new Date(challenge.endDate)} 
-                label="Fin dans" 
+              <CountdownTimer
+                targetDate={new Date(challenge.endDate)}
+                label="Fin dans"
               />
               <p className="text-gray-600 mt-2">
                 Vous avez jusqu&apos;au {new Date(challenge.endDate).toLocaleDateString('fr-FR')} pour soumettre votre projet
@@ -155,7 +152,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Description du challenge</h2>
               <p className="text-gray-600 mb-6">{challenge.description}</p>
-              
+
               {isChallengeStarted ? (
                 <div>
                   <h3 className="text-lg font-medium text-gray-800 mb-2">Thème à respecter</h3>
@@ -191,7 +188,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
             {/* Actions */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Actions</h2>
-              
+
               {userSubmission ? (
                 <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
                   <p className="text-green-800 font-medium">✅ Vous avez déjà soumis votre projet</p>
@@ -235,23 +232,23 @@ export default async function ChallengeDetail({ params }: PageProps) {
             {/* Informations du challenge */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Informations</h2>
-              
+
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-500">Date de début</p>
                   <p className="font-medium">{new Date(challenge.startDate).toLocaleDateString('fr-FR')}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-500">Date de fin</p>
                   <p className="font-medium">{new Date(challenge.endDate).toLocaleDateString('fr-FR')}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-500">Participants</p>
                   <p className="font-medium">{challenge._count.submissions}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-500">Type</p>
                   <p className="font-medium">{challenge.type}</p>
@@ -265,7 +262,7 @@ export default async function ChallengeDetail({ params }: PageProps) {
         {isChallengeOver && challenge.submissions.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mt-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Projets soumis</h2>
-            
+
             <div className="grid gap-4 md:grid-cols-2">
               {challenge.submissions.map((submission) => (
                 <div key={submission.id} className="border border-gray-200 rounded-lg p-4">
@@ -273,10 +270,10 @@ export default async function ChallengeDetail({ params }: PageProps) {
                   <p className="text-gray-600 text-sm mb-3">
                     Soumis le {new Date(submission.createdAt).toLocaleDateString('fr-FR')}
                   </p>
-                  
-                  <a 
-                    href={submission.url} 
-                    target="_blank" 
+
+                  <a
+                    href={submission.url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-indigo-600 hover:text-indigo-800 text-sm inline-flex items-center"
                   >
