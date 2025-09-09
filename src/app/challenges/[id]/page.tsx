@@ -7,7 +7,8 @@ import { prisma } from '@/lib/prisma'
 import { isAdmin, isJuror } from '@/lib/roles'
 import CountdownTimer from '@/components/CountdownTimer'
 
-export default async function ChallengeDetail({ params }: { params: { id: string } }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function ChallengeDetail({ params }: { params: any }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
@@ -65,6 +66,7 @@ export default async function ChallengeDetail({ params }: { params: { id: string
   const isChallengeOver = new Date() > new Date(challenge.endDate)
   const canSubmit = isChallengeStarted && !isChallengeOver
 
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
