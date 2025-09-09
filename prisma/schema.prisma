@@ -1,0 +1,77 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(Challenger)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+
+  // Relations
+  submissions Submission[]
+  scores      Score[]
+  challenges  Challenge[] // Relation ajoutée ici
+  shouldLogout Boolean @default(false)
+}
+
+model Challenge {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String?
+  theme       String
+  startDate   DateTime
+  endDate     DateTime
+  type        ChallengeType
+  isActive    Boolean       @default(true)
+  createdBy   Int
+  creator     User          @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  // Relations
+  submissions Submission[]
+}
+
+model Submission {
+  id          Int       @id @default(autoincrement())
+  url         String
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId Int
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  scores Score[]
+}
+
+model Score {
+  id           Int        @id @default(autoincrement())
+  value        Int
+  submissionId Int
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  judgeId      Int
+  judge        User       @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+}
+
+enum Role {
+  SuperAdmin
+  Admin
+  Judge
+  Challenger
+}
+
+enum ChallengeType {
+  Challenge
+  MiniChallenge
+}
