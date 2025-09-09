@@ -7,12 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { isAdmin, isJuror } from '@/lib/roles'
 import CountdownTimer from '@/components/CountdownTimer'
 
-interface PageProps {
-  params: { id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
-}
-
-export default async function ChallengeDetail({ params }: PageProps) {
+export default async function ChallengeDetail({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
